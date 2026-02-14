@@ -488,6 +488,8 @@ colors: ["#fcd34d", "#ef4444", "#1e293b"]
         description: "Non-slip yoga mat with extra cushioning and carrying strap.",
         sizes: ["24\" x 68\"", "26\" x 72\""],
         colors: ["#3b82f6", "#10b981", "#ef4444", "#1e293b"]
+    },{
+
     },
     {
         id: 26,
