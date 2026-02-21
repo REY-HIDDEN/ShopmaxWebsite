@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ShopMax</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #64748b;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+            --sidebar-bg: #1e293b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+        body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: var(--sidebar-bg);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+        .nav-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: #475569;
+            text-transform: uppercase;
+            padding: 0 0.5rem;
+        }
+        .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.85rem;
+            border-radius: 0.5rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+        }
+        .nav-item:hover { background: #334155; color: #e2e8f0; }
+        .nav-item.active { background: var(--primary); color: white; }
+        .logout-btn { margin-top: auto; color: #f87171; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; padding: 0.65rem 0.85rem; border-radius: 0.5rem; transition: background 0.2s; }
+        .logout-btn:hover { background: rgba(239,68,68,0.1); }
+
+        /* Main */
+        .main-content { flex: 1; padding: 1.5rem 2rem; overflow-x: hidden; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        header h1 { font-size: 1.4rem; font-weight: 600; }
+        .admin-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #1e293b;
+            color: white;
+            padding: 0.4rem 0.85rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+        }
+        .admin-badge i { color: #38bdf8; }
+
+        /* Panels */
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .stat-icon { width: 44px; height: 44px; border-radius: 0.6rem; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .blue { background: #dbeafe; color: #1e40af; }
+        .green { background: #dcfce7; color: #166534; }
+        .yellow { background: #fef9c3; color: #854d0e; }
+        .purple { background: #ede9fe; color: #6d28d9; }
+        .stat-info h4 { color: var(--secondary); font-size: 0.78rem; font-weight: 500; }
+        .stat-info p { font-size: 1.4rem; font-weight: 700; }
+
+        /* Section */
+        .section-card { background: var(--card-bg); border-radius: 0.75rem; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
+        .section-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .section-header h3 { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+        .section-header h3 i { color: var(--primary); }
+
+        /* Table */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background: #f8fafc; padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: var(--secondary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+        td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8fafc; }
+
+        /* Status badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.65rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-processing { background: #dbeafe; color: #1e40af; }
+        .status-shipped { background: #e0e7ff; color: #4338ca; }
+        .status-delivered { background: #dcfce7; color: #166534; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+
+        /* Status select */
+        .status-select {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.35rem;
+            font-size: 0.8rem;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+        }
+
+        /* Pill count */
+        .count-pill {
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.1rem 0.5rem;
+            border-radius: 2rem;
+        }
+
+        /* Order items expand */
+        .items-list { font-size: 0.78rem; color: var(--secondary); }
+        .items-list span { display: block; }
+
+        /* Empty */
+        .empty-state { text-align: center; padding: 3rem 1rem; color: var(--secondary); }
+        .empty-state i { font-size: 2.5rem; opacity: 0.3; margin-bottom: 0.75rem; }
+
+        /* Loading */
+        .loading-spinner { text-align: center; padding: 2rem; color: var(--secondary); }
+
+        /* Refresh btn */
+        .btn-refresh {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 0.4rem;
+            background: white;
+            color: var(--secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+        .btn-refresh:hover { background: var(--bg); color: var(--primary); border-color: var(--primary); }
+
+        /* User table filter */
+        .filter-row { padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; gap: 0.5rem; }
+        .filter-row input { padding: 0.4rem 0.75rem; border: 1px solid var(--border); border-radius: 0.4rem; font-size: 0.8rem; font-family: 'Poppins', sans-serif; width: 220px; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="index.html" class="logo">
+            <i class="fas fa-shield-alt"></i> Admin
+        </a>
+
+        <div>
+            <div class="nav-label">Menu</div>
+            <ul class="nav-links" style="margin-top:0.5rem;">
+                <li><button class="nav-item active" data-panel="dashboard"><i class="fas fa-chart-line"></i> Dashboard</button></li>
+                <li><button class="nav-item" data-panel="orders"><i class="fas fa-shopping-cart"></i> Orders <span class="count-pill" id="sidebarOrderCount">0</span></button></li>
+                <li><button class="nav-item" data-panel="products"><i class="fas fa-box"></i> Products</button></li>
+                <li><button class="nav-item" data-panel="users"><i class="fas fa-users"></i> Users</button></li>
+            </ul>
+        </div>
+
+        <a href="#" class="logout-btn" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <header>
+            <h1 id="pageTitle">Dashboard</h1>
+            <div class="admin-badge"><i class="fas fa-user-shield"></i> <span id="adminName">Admin</span></div>
+        </header>
+
+        <!-- ── Dashboard Panel ── -->
+        <div class="panel active" id="panel-dashboard">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-box"></i></div>
+                    <div class="stat-info"><h4>Total Products</h4><p id="productCount">—</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-users"></i></div>
+                    <div class="stat-info"><h4>Total Users</h4><p id="userCount">—</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon yellow"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="stat-info"><h4>Total Orders</h4><p id="orderCount">—</p></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-info"><h4>Total Revenue</h4><p id="totalRevenue">—</p></div>
+                </div>
+            </div>
+
+            <!-- Recent Orders on Dashboard -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class="fas fa-clock"></i> Recent Orders</h3>
+                    <button class="btn-refresh" onclick="switchPanel('orders')"><i class="fas fa-arrow-right"></i> View All</button>
+                </div>
+                <div class="table-wrap">
+                    <table id="recentOrdersTable">
+                        <thead><tr>
+                            <th>#ID</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr></thead>
+                        <tbody id="recentOrdersBody">
+                            <tr><td colspan="6" class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Orders Panel ── -->
+        <div class="panel" id="panel-orders">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class="fas fa-shopping-cart"></i> All Orders</h3>
+                    <button class="btn-refresh" onclick="loadOrders()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr>
+                            <th>#ID</th>
+                            <th>Customer</th>
+                            <th>Email</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr></thead>
+                        <tbody id="allOrdersBody">
+                            <tr><td colspan="7" class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Products Panel ── -->
+        <div class="panel" id="panel-products">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class="fas fa-box"></i> Products</h3>
+                    <button class="btn-refresh" onclick="loadProducts()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>ID</th><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Rating</th></tr></thead>
+                        <tbody id="productsBody">
+                            <tr><td colspan="6" class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Users Panel ── -->
+        <div class="panel" id="panel-users">
+            <div class="section-card">
+                <div class="section-header">
+                    <h3><i class="fas fa-users"></i> Users</h3>
+                    <button class="btn-refresh" onclick="loadUsers()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+                        <tbody id="usersBody">
+                            <tr><td colspan="5" class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000/api';
+        const token = localStorage.getItem('token');
+        let allOrders = [];
+
+        // ── Auth Guard ────────────────────────────────────────────
+        async function init() {
+            if (!token) { window.location.href = 'login/login.html'; return; }
+            try {
+                const res = await fetch(`${API}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error();
+                const user = await res.json();
+                if (user.role !== 'admin') { window.location.href = 'user_dashboard.html'; return; }
+                document.getElementById('adminName').textContent = user.fullname;
+                loadDashboard();
+            } catch {
+                localStorage.removeItem('token');
+                window.location.href = 'login/login.html';
+            }
+        }
+
+        // ── Panel Switcher ────────────────────────────────────────
+        function switchPanel(name) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`panel-${name}`).classList.add('active');
+            document.querySelector(`[data-panel="${name}"]`).classList.add('active');
+            document.getElementById('pageTitle').textContent =
+                { dashboard: 'Dashboard', orders: 'All Orders', products: 'Products', users: 'Users' }[name];
+            if (name === 'orders') loadOrders();
+            else if (name === 'products') loadProducts();
+            else if (name === 'users') loadUsers();
+        }
+
+        document.querySelectorAll('.nav-item[data-panel]').forEach(btn => {
+            btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
+        });
+
+        // ── Dashboard ─────────────────────────────────────────────
+        async function loadDashboard() {
+            await Promise.all([loadOrders(), loadProducts(), loadUsers()]);
+        }
+
+        // ── Orders ────────────────────────────────────────────────
+        async function loadOrders() {
+            try {
+                const res = await fetch(`${API}/orders/all`, { headers: { 'Authorization': `Bearer ${token}` } });
+                allOrders = await res.json();
+                renderOrders();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderOrders() {
+            // Stats
+            const total = allOrders.reduce((s, o) => s + Number(o.total_amount), 0);
+            document.getElementById('orderCount').textContent = allOrders.length;
+            document.getElementById('totalRevenue').textContent = `$${total.toFixed(2)}`;
+            document.getElementById('sidebarOrderCount').textContent = allOrders.length;
+
+            // Recent (dashboard - 5 latest)
+            renderOrderRows(document.getElementById('recentOrdersBody'), allOrders.slice(0, 5), false);
+            // All (orders panel)
+            renderOrderRows(document.getElementById('allOrdersBody'), allOrders, true);
+        }
+
+        function renderOrderRows(tbody, orders, showEmail) {
+            if (orders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${showEmail ? 7 : 6}">
+                    <div class="empty-state"><i class="fas fa-shopping-cart"></i><br>No orders yet</div>
+                </td></tr>`;
+                return;
+            }
+            tbody.innerHTML = orders.map(o => {
+                const items = parseItems(o.items);
+                const itemsText = items.map(i => `<span>• ${i.name} x${i.quantity}</span>`).join('');
+                const status = o.status || 'pending';
+                const date = new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                return `<tr>
+                    <td><strong>#${o.id}</strong></td>
+                    <td><strong>${o.user_name}</strong></td>
+                    ${showEmail ? `<td style="font-size:0.8rem;color:var(--secondary)">${o.user_email}</td>` : ''}
+                    <td><div class="items-list">${itemsText}</div></td>
+                    <td><strong>$${Number(o.total_amount).toFixed(2)}</strong></td>
+                    <td>
+                        <select class="status-select" onchange="updateStatus(${o.id}, this.value)">
+                            ${['pending','processing','shipped','delivered','cancelled'].map(s =>
+                                `<option value="${s}" ${s === status ? 'selected' : ''}>${capitalize(s)}</option>`
+                            ).join('')}
+                        </select>
+                    </td>
+                    <td style="color:var(--secondary);font-size:0.8rem;">${date}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function parseItems(items) {
+            if (Array.isArray(items)) return items;
+            if (typeof items === 'string') {
+                try { return JSON.parse(items); } catch { return []; }
+            }
+            return [];
+        }
+
+        async function updateStatus(orderId, status) {
+            try {
+                const res = await fetch(`${API}/orders/${orderId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ status })
+                });
+                if (!res.ok) throw new Error();
+            } catch { alert('Failed to update status'); }
+        }
+
+        // ── Products ──────────────────────────────────────────────
+        async function loadProducts() {
+            try {
+                const res = await fetch(`${API}/products`);
+                const products = await res.json();
+                document.getElementById('productCount').textContent = products.length;
+                document.getElementById('productsBody').innerHTML = products.map(p => `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td><img src="${p.image}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" onerror="this.style.display='none'"></td>
+                        <td style="max-width:200px;font-size:0.82rem">${p.name}</td>
+                        <td><span class="status-badge status-processing">${p.category_name || p.category}</span></td>
+                        <td><strong>$${Number(p.price).toFixed(2)}</strong></td>
+                        <td>⭐ ${p.rating}</td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        // ── Users ─────────────────────────────────────────────────
+        async function loadUsers() {
+            try {
+                const res = await fetch(`${API}/auth/users`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error();
+                const users = await res.json();
+                document.getElementById('userCount').textContent = users.length;
+                document.getElementById('usersBody').innerHTML = users.map(u => `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td><strong>${u.fullname}</strong></td>
+                        <td style="font-size:0.82rem;color:var(--secondary)">${u.email}</td>
+                        <td><span class="status-badge ${u.role === 'admin' ? 'status-shipped' : 'status-delivered'}">${capitalize(u.role)}</span></td>
+                        <td style="font-size:0.8rem;color:var(--secondary)">${new Date(u.created_at).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+            } catch {
+                document.getElementById('userCount').textContent = '—';
+                document.getElementById('usersBody').innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-exclamation-circle"></i><br>Users API not available</div></td></tr>`;
+            }
+        }
+
+        function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+
+        // ── Logout ────────────────────────────────────────────────
+        document.getElementById('logoutBtn').addEventListener('click', e => {
+            e.preventDefault();
+            localStorage.removeItem('token');
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login/login.html';
+        });
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
