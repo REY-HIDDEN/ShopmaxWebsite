@@ -25,15 +25,15 @@
                 <div class="header-actions">
                     <div class="search-box">
                         <input type="text" placeholder="Search products..." id="searchInput">
-                        <button class="search-btn"><i class="fas fa-search"></i></button>
+                        <button type="button" class="search-btn" title="Search products"><i class="fas fa-search"></i></button>
                     </div>
                     <button class="cart-btn" id="cartBtn">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="cart-count" id="cartCount">0</span>
                     </button>
-                    <button class="user-btn"><a href="login/login.html"><i class="fas fa-user"></i></a></button>
+                    <a href="login/login.html" class="user-btn"><i class="fas fa-user"></i></a>
                 </div>
-                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <button type="button" class="mobile-menu-btn" id="mobileMenuBtn" title="Toggle mobile menu">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
@@ -253,7 +253,7 @@
     <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
             <h3>Shopping Cart</h3>
-            <button class="close-cart" id="closeCart"><i class="fas fa-times"></i></button>
+            <button type="button" class="close-cart" id="closeCart" title="Close cart"><i class="fas fa-times"></i></button>
         </div>
         <div class="cart-items" id="cartItems">
             <!-- Cart items will be loaded here -->
@@ -272,7 +272,7 @@
     <div class="product-modal" id="productModal">
         <div class="modal-overlay" id="modalOverlay"></div>
         <div class="modal-content">
-            <button class="close-modal" id="closeModal"><i class="fas fa-times"></i></button>
+            <button type="button" class="close-modal" id="closeModal" title="Close product details"><i class="fas fa-times"></i></button>
             <div class="modal-body" id="modalBody">
                 <!-- Product details will be loaded here -->
             </div>
