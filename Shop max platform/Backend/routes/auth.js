@@ -3,8 +3,12 @@ const router = express.Router();
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_fallback_secret';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
 // Register verification
 router.post('/register', async (req, res) => {
@@ -69,6 +73,66 @@ router.post('/login', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Google Sign-In verification
+router.post('/google', async (req, res) => {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+        return res.status(400).json({ message: 'Google ID token is required' });
+    }
+
+    if (!googleClient) {
+        return res.status(500).json({ message: 'Google Sign-In is not configured on the server' });
+    }
+
+    try {
+        const ticket = await googleClient.verifyIdToken({
+            idToken,
+            audience: GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+        const email = payload?.email;
+        const emailVerified = payload?.email_verified;
+
+        if (!email || !emailVerified) {
+            return res.status(401).json({ message: 'Google account email is not verified' });
+        }
+
+        const fullname = payload?.name || email.split('@')[0];
+
+        const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+
+        let user = users[0];
+
+        if (!user) {
+            const randomPassword = crypto.randomBytes(32).toString('hex');
+            const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+            const [insertResult] = await db.query(
+                'INSERT INTO users (fullname, email, password, role, company) VALUES (?, ?, ?, ?, ?)',
+                [fullname, email, hashedPassword, 'user', null]
+            );
+
+            const [createdUsers] = await db.query('SELECT * FROM users WHERE id = ?', [insertResult.insertId]);
+            user = createdUsers[0];
+        }
+
+        const token = jwt.sign(
+            { id: user.id, email: user.email, role: user.role },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        delete user.password;
+
+        res.json({ message: 'Google Sign-In successful', token, user });
+    } catch (error) {
+        console.error('Google Sign-In Error:', error);
+        res.status(401).json({ message: 'Invalid Google token' });
     }
 });
 

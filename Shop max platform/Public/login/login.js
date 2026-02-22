@@ -118,7 +118,12 @@
   if (googleSignInBtn) {
     googleSignInBtn.addEventListener('click', async () => {
       try {
-        if (!window.firebaseAuth || !window.googleProvider || !window.signInWithPopup) {
+        if (
+          !window.firebaseAuth ||
+          !window.googleProvider ||
+          !window.signInWithPopup ||
+          !window.GoogleAuthProvider
+        ) {
           showMessage('Google Sign-In is temporarily unavailable.', 'error');
           return;
         }
@@ -127,27 +132,38 @@
         googleSignInBtn.querySelector('span').textContent = 'Signing in...';
 
         const result = await window.signInWithPopup(window.firebaseAuth, window.googleProvider);
-        const user = result.user;
+        const credential = window.GoogleAuthProvider.credentialFromResult(result);
+        const idToken = credential?.idToken;
 
-        const googleUser = {
-          email: user.email,
-          name: user.displayName || user.email.split('@')[0],
-          photoURL: user.photoURL || '',
-          uid: user.uid,
-          provider: 'google'
-        };
-
-        localStorage.setItem('currentUser', JSON.stringify(googleUser));
-
-        // Add to users list if new
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        if (!users.find(u => u.email === googleUser.email)) {
-          users.push(googleUser);
-          localStorage.setItem('users', JSON.stringify(users));
+        if (!idToken) {
+          throw new Error('Google ID token was not returned.');
         }
 
+        const response = await fetch('http://localhost:3000/api/auth/google', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ idToken })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Google Sign-In failed.');
+        }
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('currentUser', JSON.stringify(data.user));
+
         showMessage('Google Sign-In successful! Redirecting...', 'success');
-        setTimeout(() => { window.location.href = '../index.html'; }, 1000);
+        setTimeout(() => {
+          if (data.user.role === 'admin') {
+            window.location.href = '../admin_dashboard.html';
+          } else {
+            window.location.href = '../user_dashboard.html';
+          }
+        }, 1000);
 
       } catch (error) {
         console.error('Google Sign-In Error:', error);
@@ -157,7 +173,7 @@
         if (error.code === 'auth/popup-closed-by-user') {
           showMessage('Sign-in cancelled.', 'error');
         } else {
-          showMessage('Google Sign-In failed. Please try again.', 'error');
+          showMessage(error.message || 'Google Sign-In failed. Please try again.', 'error');
         }
       }
     });
