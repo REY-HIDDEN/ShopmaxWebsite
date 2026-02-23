@@ -5,7 +5,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 
 // ── Create a new order ────────────────────────────────────────────────────────
 router.post('/', authMiddleware, async (req, res) => {
-    const { items, total_amount } = req.body;
+    const { items, total_amount, payment_method } = req.body;
     const user_id = req.user.id;
 
     if (!items || !items.length || !total_amount) {
@@ -17,8 +17,8 @@ router.post('/', authMiddleware, async (req, res) => {
         await connection.beginTransaction();
 
         const [orderResult] = await connection.query(
-            'INSERT INTO orders (user_id, total_amount) VALUES (?, ?)',
-            [user_id, total_amount]
+            'INSERT INTO orders (user_id, total_amount, payment_method) VALUES (?, ?, ?)',
+            [user_id, total_amount, payment_method || 'card']
         );
         const orderId = orderResult.insertId;
 
